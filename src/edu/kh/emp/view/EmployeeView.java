@@ -130,12 +130,11 @@ public class EmployeeView {
 			conn = DriverManager.getConnection(type + ip + port + sid, user, pw);
 			
 			
-			System.out.println(conn);
+		
+
 			
 			
-			
-			
-			String sql = " SELECT EMP_ID , EMP_NAME , EMP_NO , EMAIL , PHONE , DEPT_TITLE , JOB_NAME , SALARY , BONUS , MANAGER_ID "
+			String sql = "SELECT EMP_ID , EMP_NAME , EMP_NO , EMAIL , PHONE , SALARY , DEPT_CODE , JOB_CODE ,SAL_LEVEL,  BONUS , MANAGER_ID "
 					+ " FROM EMPLOYEE "
 					+ " JOIN JOB USING(JOB_CODE) "
 					+ " JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID) ";
@@ -171,6 +170,7 @@ public class EmployeeView {
 
 				list.add(new Employee(empId,empName,empNo,email,phone,salary,deptCode,
 						jobCode,salLevel,bonus,managerId));
+				
 				
 				System.out.println();
 				
@@ -222,6 +222,14 @@ public class EmployeeView {
 	 * @param empList
 	 */
 	public void printAll(List<Employee> empList) {
+		
+		
+		
+		
+		
+		
+		
+		
 		return;
 	}
 	
@@ -230,7 +238,74 @@ public class EmployeeView {
 	 * 사번이 일치하는 사원 정보 조회
 	 */
 	public void selectEmpId() {
+
 		
+	try {
+		System.out.println("사번입력 : ");
+		String inputEmpId = sc.next();
+		
+		Class.forName("oracle.jdbc.driver.OracleDriver:");
+		String type ="jdbc:oracle:thin:@";
+		String ip = "localhost";
+		String port = ":1521";
+		String sid = ":XE";
+		String user = "kh";
+		String pw = "kh1234";
+		
+		conn = DriverManager.getConnection(type + ip + port + sid, user, pw);
+
+		String sql = "SELECT EMP_ID,EMP_NAME,EMP_NO,EMAIL,PHONE,DEPT_TITLE,JOB_NAME,SALARY "
+				+ " FROM EMPLOYEE "
+				+ " JOIN JOB USING(JOB_CODE) "
+				+ " JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID) "
+				+ " WHERE EMP_ID = " + inputEmpId;
+		
+		stmt = conn.createStatement();
+		rs = stmt.executeQuery(sql);
+		
+		List<Employee> list = new ArrayList<>();
+		
+		while(rs.next()) {
+			
+			
+			Employee em = new Employee();
+
+			em.setEmpId(rs.getInt("EMP_ID"));
+			em.setEmpName(rs.getString("EMP_NAME"));
+			em.setEmpNo(rs.getString("EMP_NO"));
+			em.setEmail(rs.getString("EMAIL"));
+			em.setPhone(rs.getString("PHONE"));
+			em.setDepartmentTitle(rs.getString("DEPT_TITLE"));
+			em.setJobName(rs.getString("JOB_NAME"));
+			em.setSalary(rs.getInt("SALARY"));
+			
+			list.add(em);
+		}
+			
+		
+		if(list.isEmpty()) {
+			System.out.println("조회결과없");
+		
+		}else {
+			
+			for(Employee em: list)
+				System.out.println(em);
+		}
+		
+				
+				
+				
+				
+	}catch(ClassNotFoundException e) {
+		e.printStackTrace();
+	}catch(SQLException e) {
+		e.printStackTrace();
+	}finally {
+		if()
+			
+		}
+		
+	
 		
 		
 		
