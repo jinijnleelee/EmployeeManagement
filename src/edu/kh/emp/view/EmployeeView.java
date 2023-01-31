@@ -1,5 +1,12 @@
 package edu.kh.emp.view;
 
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.List;
@@ -14,6 +21,12 @@ public class EmployeeView {
 	
 	// DAO 객체 생성
 	//private EmployeeDAO dao = new EmployeeDAO();
+	
+	Connection conn = null;
+	Statement stmt = null;
+	ResultSet rs = null;
+	
+	
 	
 	
 	
@@ -95,6 +108,113 @@ public class EmployeeView {
 	 */
 	public void selectAll() {
 		
+		
+		try {
+			Class.forName("oracle.jdbc.driver.OracleDriver");
+			
+			
+			String type = "jdbc:oracle:thin:@"; // JDBC 드라이버의 종류
+			
+			String ip = "localhost"; // DB 서버 컴퓨터 IP
+			// localhost == 127.0.0.1 (loop back ip)
+			
+			String port = ":1521"; // 포트번호 1521 (기본값)
+			
+			String sid = ":XE"; // DB 이름
+			
+			String user = "kh";
+			
+			String pw = "kh1234";
+			
+			
+			conn = DriverManager.getConnection(type + ip + port + sid, user, pw);
+			
+			
+			System.out.println(conn);
+			
+			
+			
+			
+			String sql = " SELECT EMP_ID , EMP_NAME , EMP_NO , EMAIL , PHONE , DEPT_TITLE , JOB_NAME , SALARY , BONUS , MANAGER_ID "
+					+ " FROM EMPLOYEE "
+					+ " JOIN JOB USING(JOB_CODE) "
+					+ " JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID) ";
+			
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(sql);
+
+			
+			
+			List<Employee> list = new ArrayList<>();
+			
+			
+			while(rs.next()) {
+			
+				
+				int empId = rs.getInt("EMP_ID");
+				String empName = rs.getString("EMP_NAME");
+				String empNo = rs.getString("EMP_NO");
+				String email = rs.getString("EMAIL");
+				String phone = rs.getString("PHONE");
+				int salary = rs.getInt("SALARY");
+				String deptCode = rs.getString("DEPT_CODE");
+				String jobCode = rs.getString("JOB_CODE");
+				String salLevel = rs.getString("SAL_LEVEL");
+				double bonus  = rs.getDouble("BONUS");
+				int managerId = rs.getInt("MANAGER_ID");
+				
+				
+				
+			
+				
+				
+
+				list.add(new Employee(empId,empName,empNo,email,phone,salary,deptCode,
+						jobCode,salLevel,bonus,managerId));
+				
+				System.out.println();
+				
+				
+				
+				
+			}
+		
+			
+			
+			
+	if(list.isEmpty()) {//List가 비어있을경우 
+					
+					//isEmpty() : 비어있으면 true
+					
+					System.out.println("조회결과없습니다");
+				}else {
+					
+					//향상된 for문 
+					for(Employee emp : list)
+						System.out.println(emp);
+					
+					
+				}
+			
+			
+		}catch(ClassNotFoundException e) {
+			e.printStackTrace();
+		}catch(SQLException e) {
+			e.printStackTrace();
+		}finally {
+			try {
+				if( rs != null ) rs.close();
+				if( stmt != null ) stmt.close();
+				if( conn != null ) conn.close();
+				
+			}catch(SQLException e) {
+				e.printStackTrace();
+			
+		}
+		
+		}
+		
+		
 	}
 	
 	
@@ -110,6 +230,9 @@ public class EmployeeView {
 	 * 사번이 일치하는 사원 정보 조회
 	 */
 	public void selectEmpId() {
+		
+		
+		
 		
 	}
 	
