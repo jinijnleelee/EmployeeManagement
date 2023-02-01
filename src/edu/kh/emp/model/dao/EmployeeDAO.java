@@ -389,7 +389,7 @@ public class EmployeeDAO {
 	 * @param empId
 	 * @return result
 	 */
-	public int deleteEmployee(int empId) {
+	public int deleteEmployee(int empId) { // 이건 성공적으로 돌ㄹ아감
 		
 		int result = 0; // 결과 저장용 변수
 		
