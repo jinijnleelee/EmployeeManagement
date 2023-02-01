@@ -30,14 +30,14 @@ public class EmployeeView {
 	
 	
 	
-	
-	
-	Connection conn = null;
-	Statement stmt = null;
-	ResultSet rs = null;
-	
-	
-	
+//	
+//	
+//	Connection conn = null;
+//	Statement stmt = null;
+//	ResultSet rs = null;
+//	
+//	
+//	
 	
 	
 	// 메인 메뉴
@@ -87,13 +87,13 @@ public class EmployeeView {
 				switch(input) {
 				case 1:  insertEmployee();   break; //잘됨
 				case 2:  selectAll();  break; // 잘됨
-				case 3:  selectEmpId();   break; // 같이 안함 
+				case 3:  selectEmpId();   break; // 완 
 				case 4:  updateEmployee();   break; //잘됨
 				case 5:  deleteEmployee();   break; // 잘됨 
 				case 6:  selectDeptEmp();   break;
 				case 7:  selectSalaryEmp();   break;
 				case 8:  selectDeptTotalSalary();   break; //안해도됨 
-				case 9:  selectEmpNo();   break;
+				case 9:  selectEmpNo();   break; // 잘됨 
 				case 10: selectJobAvgSalary();   break; //안해도됨 
 				
 				case 0:  System.out.println("프로그램을 종료합니다...");   break;
@@ -262,37 +262,39 @@ public class EmployeeView {
 	}
 		
 		
-		return;
+		
 	}
 	
 	/**
 	 * 사번이 일치하는 사원 정보 조회
 	 */
-	public void selectEmpId() {
+	public void selectEmpId() { // 
+
+		int empId = inputEmpId();
+		
+		
+	Employee emp	= dao.selectEmpId(empId);
+	printOne(emp);
 
 		
-
-		System.out.println("사번입력 : ");
-		String inputEmpId = sc.next();
-		sc.nextLine(); //버퍼에 남은 개행문자 제거 
-	try {
-		
-		Class.forName("oracle.jdbc.driver.OracleDriver");
-		
-		String type = "jdbc:oracle:thin:@"; // JDBC 드라이버의 종류
-		
-		String ip = "localhost"; // DB 서버 컴퓨터 IP
-		// localhost == 127.0.0.1 (loop back ip)
-		
-		String port = ":1521"; // 포트번호 1521 (기본값)
-		
-		String sid = ":XE"; // DB 이름
-		
-		String user = "kh";
-		
-		String pw = "kh1234";
-		
-		conn = DriverManager.getConnection(type + ip + port + sid, user, pw);
+//	try {
+//		
+//		Class.forName("oracle.jdbc.driver.OracleDriver");
+//		
+//		String type = "jdbc:oracle:thin:@"; // JDBC 드라이버의 종류
+//		
+//		String ip = "localhost"; // DB 서버 컴퓨터 IP
+//		// localhost == 127.0.0.1 (loop back ip)
+//		
+//		String port = ":1521"; // 포트번호 1521 (기본값)
+//		
+//		String sid = ":XE"; // DB 이름
+//		
+//		String user = "kh";
+//		
+//		String pw = "kh1234";
+//		
+//		conn = DriverManager.getConnection(type + ip + port + sid, user, pw);
 
 //		String sql = "SELECT EMP_ID,EMP_NAME,EMP_NO,EMAIL,PHONE,DEPT_TITLE,JOB_NAME,SALARY "
 //				+ " FROM EMPLOYEE "
@@ -335,26 +337,26 @@ public class EmployeeView {
 //				
 //				
 				
-				
-	}catch(ClassNotFoundException e) {
-		e.printStackTrace();
-	}catch(SQLException e) {
-		e.printStackTrace();
-	}finally {
-		try {
-			if(rs !=null) rs.close();
-			if(stmt != null) stmt.close();
-			if(conn != null) conn.close();
-			
-			
-		}catch(SQLException e) {
-			e.printStackTrace();
-			
-		}
-			
-		}
-		
-	
+//				
+//	}catch(ClassNotFoundException e) {
+//		e.printStackTrace();
+//	}catch(SQLException e) {
+//		e.printStackTrace();
+//	}finally {
+//		try {
+//			if(rs !=null) rs.close();
+//			if(stmt != null) stmt.close();
+//			if(conn != null) conn.close();
+//			
+//			
+//		}catch(SQLException e) {
+//			e.printStackTrace();
+//			
+//		}
+//			
+//		}
+//		
+//	
 		
 }
 		
@@ -557,7 +559,9 @@ public class EmployeeView {
 	System.out.println("부서명 : ");
 	String departmentTitle = sc.nextLine();
 	
-	dao.selectDeptEmp(departmentTitle);
+	List<Employee> empList = dao.selectDeptEmp(departmentTitle);
+	
+	printAll(empList);
 	}
 	
 	/**

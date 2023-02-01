@@ -16,7 +16,7 @@ import edu.kh.emp.model.vo.Employee;
 // --> JDBC 코드 작성
 public class EmployeeDAO {
 //창 여는 순 
-//	Run - view Service - Dao - Vo
+//	Run - view - Service - Dao - Vo
 	
 	
 	// JDBC 객체 참조 변수 필드에 선언 (Class 내부에 공통 사용)
@@ -30,7 +30,7 @@ public class EmployeeDAO {
 	/*
 	
 	public void method() { //메소드안에 선언된 변수는 지역변수인거 알쥐? 
-		//Connection conn2; //지역변수(Stack, 변수가 비어있을수 있음)
+		//Connection conn2; //지역변수(Stack, 변수 초기화 안해주면 비어있을수 있음)
 	}
 	
 	*/
@@ -49,7 +49,7 @@ public class EmployeeDAO {
 	private PreparedStatement pstmt;
 	//Statement의 자식으로 향상된 기능을 제공
 	//-> ? 기호 (placeholder/위치 홀더)를 이용해서
-	//SQL에 작성되어지는 리터럴을 동적을 제어함
+	//SQL에 작성되어지는 리터럴을 동적으로 제어함
 	
 	//SQL ? 기호에 추가되는 값은
 	//숫자인 경우 '' 없이 대입
@@ -144,15 +144,103 @@ public class EmployeeDAO {
 	return empList;
 		
 	}
-	
+	public Employee selectEmpId(int empId) {
+		
+		Employee emp = null;
+		
+		
+		try {
+			
+			Class.forName(driver);
+			conn = DriverManager.getConnection(url, user, pw);
+		
+		
+			
+			String sql = "SELECT EMP_ID,EMP_NAME,EMP_NO,EMAIL,PHONE,NVL(DEPT_TITLE,'부서없음') DEPT_TITLE,JOB_NAME,SALARY "
+					+	" FROM EMPLOYEE "
+					+	" LEFT JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID)"
+					+	" JOIN JOB USING(JOB_CODE)"
+					+	" WHERE EMP_ID = ? ";
+		
+		
+
+			//PreparedStatement 객체 생성
+			pstmt = conn.prepareStatement(sql);
+			
+			// ? 에 알맞는 값 대입
+			pstmt.setInt(1, empId);
+			
+			
+			//SQL 수행후 결과 반환
+			rs = pstmt.executeQuery();
+			// prepareStatement는 
+			// 객체 생성시 이미 SQL 이 다겨져 있는 상태 이므로
+			//SQL 수행시(executeQuery)  새 매개변수로 전달할 필요가 없다!
+			//
+			//?에 작성되어있던 값이 모두 사라져 수행 시 오류 발생 
+			
+			
+			if(rs.next()) {
+				
+				
+				
+				//EMP_ID 컬럼은 문자열 컬럼이지만
+				//저장된 값들이 모두 숫자형태 이다.
+				//->DB애서 자동으로 형변환 진행해서  얻어온다.
+				String empName = rs.getString("EMP_NAME");
+				String empNo = rs.getString("EMP_NO");
+			//	String empNo = rs.getString("EMP_NO");//파라미타와 같은값이므로 불필요하다.
+				String email = rs.getString("EMAIL");
+				String phone = rs.getString("PHONE");
+				String department = rs.getString("DEPT_TITLE");
+				String jabName = rs.getString("JOB_NAME");
+				int  salary = rs.getInt("SALARY");
+				
+				 emp = new Employee(empId, empName, empNo, email, phone, department, jabName, salary);
+						
+				 
+						
+			}//while문 종료 
+			
+		
+		
+		} catch (Exception e) {
+			
+			
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally {
+			try {
+				if(rs !=null)rs.close();
+				if(pstmt != null) pstmt.close();
+				if(conn != null)conn.close();
+				
+				
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		
+		
+		
+		
+		
+		
+		return emp;
+	}
 	
 	
 	/**주민정보조회가 일치하는 사원정보조회 dab
 	 * @param empNo
 	 * @return emp
 	 */
-	public Employee selectEmpNo(String empNo) {
+	public Employee selectEmpNo(String empNo) { // 이건 성공적으로 돌ㄹ아감 
+		//주민번호를 조회하는건 결국 결과값이 1개임. 왜냐면 주민번호는 겹치지않으니까.
+		//그래서 List가 아니고 그냥 Employee 객체 임 
 		
+		//주민번호가 일치하는 사원을 찾는거면 결국 주민번호를 입력받았다는거니까 
+		//매개변수로 주민번호를 받음 
 		
 		
 		
@@ -231,7 +319,7 @@ public class EmployeeDAO {
 		}finally {
 			try {
 				if(rs != null) rs.close();
-				if(pstmt != null)rs.close();
+				if(pstmt != null)pstmt.close();
 				if(conn != null) conn.close();
 			}catch(Exception e) {
 				e.printStackTrace();
@@ -445,16 +533,93 @@ public class EmployeeDAO {
 
 	/**
 	 * @param departmentTitle
-	 * @return 
+	 * @return empList
 	 */
 	public List<Employee> selectDeptEmp(String departmentTitle) { 
+		
+List<Employee> empList = new ArrayList<>();
+		
 	
-		return null;
+		
+		try {
+			//2. JDBC 참조 변수에 객체 대입
+			// --> conn, stmt , rs에 객체 대입
+		
+			Class.forName(driver);//오라클 jdbc 드라이버 객체 메모리 로드
+			
+			conn = DriverManager.getConnection(url, user, pw);
+			//오라클 jdbc 드라이버 객체를 이용하여 DB 접속 방법 생성
+			
+			
+			String sql = "SELECT EMP_ID,EMP_NAME,EMP_NO,EMAIL,PHONE,DEPT_TITLE,JOB_NAME,SALARY "
+					+	" FROM EMPLOYEE "
+					+	" LEFT JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID)"
+					+	" JOIN JOB USING(JOB_CODE)"
+					+	" WHERE DEPT_TITLE = " + "'" + departmentTitle + "'";
+			
+			
+			//Statment 객체 생성
+	stmt = conn.createStatement();
+			//SQL 수행 후 결과(Result Set) 반환 받음
+	rs = stmt.executeQuery(sql);
+	
+	
+	//3. 조회 결과얻어와 한 행씩 접근하여
+	// Employee 객체 생성 후 컬럼 값 옮겨담기
+	//-> List 추가
+	
+	while(rs.next()) {
+		
+		int empId = rs.getInt("EMP_ID");
+		//EMP_ID 컬럼은 문자열 컬럼이지만
+		//저장된 값들이 모두 숫자형태 이다.
+		//->DB애서 자동으로 형변환 진행해서  얻어온다.
+		String empName = rs.getString("EMP_NAME");
+		String empNo = rs.getString("EMP_NO");
+		String email = rs.getString("EMAIL");
+		String phone = rs.getString("PHONE");
+		String department = rs.getString("DEPT_TITLE");
+		String jabName = rs.getString("JOB_NAME");
+		int  salary = rs.getInt("SALARY");
+		
+		Employee emp = new Employee(empId, empName, empNo, email, phone, department, jabName, salary);
+				empList.add(emp); //List 담기
+				
+	}//while문 종료 
+	
+	
+	
+	
+	
+}catch(Exception e) {
+	e.printStackTrace();
 
+	
+}finally {
+	//4. JDBC 객체 자원 반환
+	try {
+		if(rs != null) rs.close();
+		if(stmt != null)stmt.close();
+		if(conn != null)conn.close();
+		
+	}catch(SQLException e) {
+	e.printStackTrace();
+}
+
+
+
+}
+
+return empList;
+
+}
 	
 }
 
-}
+
+
+
+
 
 
 
