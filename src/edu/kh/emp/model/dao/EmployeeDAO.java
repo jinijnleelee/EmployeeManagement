@@ -7,7 +7,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import edu.kh.emp.model.vo.Employee;
 
@@ -144,25 +147,35 @@ public class EmployeeDAO {
 	return empList;
 		
 	}
+	/**사번이 일치하는 사원 정보 조회 DAO
+	 * @param empId
+	 * @return emp
+	 */
 	public Employee selectEmpId(int empId) {
-		
+		//결과 저장용 변수 선언
 		Employee emp = null;
-		
+		//만약 조회결과가 있으면 Employee 객체를 생성해서 emp에 대입하겠다는 뜻 (최종적으로 null이 아님)
+		//만약 조회결과가 업으면 emp에 아무것도 대입하지 않음 (즉 초기값인 null을 가지게됨)
 		
 		try {
-			
+			//오라클 JDBC 드라이버 메모리 로드 
 			Class.forName(driver);
-			conn = DriverManager.getConnection(url, user, pw);
-		
-		
+			conn = DriverManager.getConnection(url, user, pw); //커넥선 생성해서 얻어오기
 			
+		
+		
+			//SQL 작성
 			String sql = "SELECT EMP_ID,EMP_NAME,EMP_NO,EMAIL,PHONE,NVL(DEPT_TITLE,'부서없음') DEPT_TITLE,JOB_NAME,SALARY "
 					+	" FROM EMPLOYEE "
 					+	" LEFT JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID)"
 					+	" JOIN JOB USING(JOB_CODE)"
 					+	" WHERE EMP_ID = ? ";
+										//view에서 입력받은 사번 즉  매개변수에서 가져온 값
 		
-		
+			
+			
+			
+			
 
 			//PreparedStatement 객체 생성
 			pstmt = conn.prepareStatement(sql);
@@ -179,14 +192,14 @@ public class EmployeeDAO {
 			//
 			//?에 작성되어있던 값이 모두 사라져 수행 시 오류 발생 
 			
+			//**************조회 결과가 최대 1행인 경우 
+			//		불필요한 조건 검사를 줄이기 위해서 if문 사용 권장**
 			
-			if(rs.next()) {
+			if(rs.next()) { // 조회결과가 있을 경우 
 				
 				
-				
-				//EMP_ID 컬럼은 문자열 컬럼이지만
-				//저장된 값들이 모두 숫자형태 이다.
-				//->DB애서 자동으로 형변환 진행해서  얻어온다.
+				//파라미터로 받은 empId가 있어서 따로 empId를 안만들어도 됨 
+				//empId -> 파라미터와 같은 값이므로 불필요
 				String empName = rs.getString("EMP_NAME");
 				String empNo = rs.getString("EMP_NO");
 			//	String empNo = rs.getString("EMP_NO");//파라미타와 같은값이므로 불필요하다.
@@ -198,6 +211,7 @@ public class EmployeeDAO {
 				
 				 emp = new Employee(empId, empName, empNo, email, phone, department, jabName, salary);
 						
+				
 				 
 						
 			}//while문 종료 
@@ -211,6 +225,7 @@ public class EmployeeDAO {
 			e.printStackTrace();
 		}finally {
 			try {
+				//JDBC객체 참조변수를 열어둔 순서 역순으로 닫아줌
 				if(rs !=null)rs.close();
 				if(pstmt != null) pstmt.close();
 				if(conn != null)conn.close();
@@ -531,13 +546,13 @@ public class EmployeeDAO {
 
 
 
-	/**
+	/**입력받은 부서와 일치하는 모든 사원 정보 조회DAO
 	 * @param departmentTitle
 	 * @return empList
 	 */
 	public List<Employee> selectDeptEmp(String departmentTitle) { 
-		
-List<Employee> empList = new ArrayList<>();
+		//결과저장용변수 
+		List<Employee> empList = new ArrayList<>();
 		
 	
 		
@@ -578,12 +593,13 @@ List<Employee> empList = new ArrayList<>();
 		String empNo = rs.getString("EMP_NO");
 		String email = rs.getString("EMAIL");
 		String phone = rs.getString("PHONE");
-		String department = rs.getString("DEPT_TITLE");
+	
 		String jabName = rs.getString("JOB_NAME");
 		int  salary = rs.getInt("SALARY");
 		
-		Employee emp = new Employee(empId, empName, empNo, email, phone, department, jabName, salary);
-				empList.add(emp); //List 담기
+		Employee emp = new Employee(empId, empName, empNo, email, phone, departmentTitle, jabName, salary);
+				
+			empList.add(emp); //List 담기
 				
 	}//while문 종료 
 	
@@ -613,6 +629,223 @@ List<Employee> empList = new ArrayList<>();
 return empList;
 
 }
+	
+	
+	
+	/**입력 받은 금ㅇ 이상을 받는 모든 사원 접 조회 DAO
+	 * @param inputSalary
+	 * @return empList
+	 */
+	
+	
+	
+	public List<Employee> selectSalaryEmp(int inputSalary){
+	
+		//결과 ㅈ저장용 변수 
+		List<Employee> empList = new ArrayList<>();
+		
+		try { //JDBC 드라이버 메모리 로드
+			Class.forName(driver);
+			conn = DriverManager.getConnection(url, user,pw);
+			
+			
+			String sql =  "SELECT EMP_ID,EMP_NAME,EMP_NO,EMAIL,PHONE,DEPT_TITLE,JOB_NAME,SALARY "
+					+	" FROM EMPLOYEE "
+					+	" LEFT JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID)"
+					+	" JOIN JOB USING(JOB_CODE)"
+					+	" WHERE SALARY >  " + "'" + inputSalary + "'";
+			
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(sql);
+			
+			while(rs.next()) {
+				
+				int empId = rs.getInt("EMP_ID");
+				//EMP_ID 컬럼은 문자열 컬럼이지만
+				//저장된 값들이 모두 숫자형태 이다.
+				//->DB애서 자동으로 형변환 진행해서  얻어온다.
+				String empName = rs.getString("EMP_NAME");
+				String empNo = rs.getString("EMP_NO");
+				String email = rs.getString("EMAIL");
+				String phone = rs.getString("PHONE");
+				String department = rs.getString("DEPT_TITLE");
+				String jabName = rs.getString("JOB_NAME");
+				int  salary = rs.getInt("SALARY");
+				
+				Employee emp = new Employee(empId, empName, empNo, email, phone, department, jabName, salary);
+						empList.add(emp); //List 담기
+				
+				
+				
+				
+				
+			}
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		
+				
+				
+				
+			}finally {
+				
+				try {
+					if(rs != null)rs.close();
+					if(stmt != null)stmt.close();
+					if(conn != null)conn.close();
+					
+				}catch(Exception e) {
+					e.printStackTrace();
+				
+				
+				
+				
+			}
+			
+			
+		}
+		
+		
+		
+		
+		
+		
+		return empList;
+		
+	}
+	
+	
+	public Map<String,Integer> selectDeptTotalSalary() {
+		
+		//Map<String,Integer> map = new HashMap<>();
+		Map<String,Integer> map =  new LinkedHashMap<>();
+		//LinkedHashMap<> key 순서가 유지되는 HashMap
+		//->order by 절 정렬 결과를 그대로 저장 가능
+		
+		try {
+			Class.forName(driver);
+			conn = DriverManager.getConnection(url, user,pw);
+			
+			
+			String sql = "SELECT  NVL(DEPT_CODE,'부서없음') DEPT_CODE, SUM(SALARY) TOTAL"
+					+ " FROM EMPLOYEE"
+					+ " LEFT JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID)"
+					+ " GROUP  BY DEPT_CODE" 
+					+ " ORDER BY DEPT_CODE" ;
+			
+			
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(sql);
+			
+			while(rs.next()) {
+				String deptCode = rs.getString("DEPT_CODE");
+				int total = rs.getInt("TOTAL");
+						
+						map.put(deptCode, total);
+				
+				
+				
+				
+				
+			}
+			
+			
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			
+			
+		}finally {
+			
+			
+			
+			try {
+				if(rs != null)rs.close();
+				if(stmt != null)stmt.close();
+				if(conn != null)conn.close();
+				
+			}catch(Exception e) {
+				e.printStackTrace();
+		}
+		}
+		return map;
+	}
+	
+	
+	
+	
+	/** 직급별 급여 평균조회 DAO
+	 * @return map
+	 */
+	public Map<String,Double> selectJobAvgSalary (){
+		
+		Map<String,Double> map =  new LinkedHashMap<>();
+		
+		//직급명,급여평균
+		try {
+			
+			
+			Class.forName(driver);
+			conn = DriverManager.getConnection(url, user, pw);
+			
+			
+			String sql = "SELECT JOB_NAME, ROUND(AVG(SALARY),1) AVERAGE"
+					+ " FROM EMPLOYEE"
+					+ " JOIN JOB USING(JOB_CODE)"
+					+ " GROUP  BY JOB_NAME,JOB_CODE" 
+					+ " ORDER BY JOB_CODE" ;
+					
+			//GROUP  BY 절에 JOB_CODE 포함 시켜 
+			//ORDER BY 절에 정렬 컬럼으로 사용 가능하게 만든다 
+			
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(sql);
+			
+			while(rs.next()) {
+				String jobCode = rs.getString("JOB_NAME");
+				Double average = rs.getDouble("AVERAGE");
+						
+						map.put(jobCode, average);
+				
+			}
+			
+			
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			
+			
+			
+			
+		}finally {
+			
+			try {
+				if(rs != null) rs.close();
+				if(stmt != null) stmt.close();
+				if(conn != null)conn.close();
+				
+			}catch(Exception e) {
+				e.printStackTrace();
+				
+			}
+			
+			
+			
+		}
+		
+		
+		return map;
+		
+	}
 	
 }
 
